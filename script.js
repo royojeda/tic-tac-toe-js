@@ -19,7 +19,11 @@ const Board = (() => {
     contents = [emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol]
   }
 
-  return { getContentAt, insertAt, reset }
+  const isFull = () => {
+    return !contents.includes(emptySymbol)
+  }
+
+  return { getContentAt, insertAt, reset, isFull }
 })()
 
 const Game = (() => {
@@ -59,6 +63,10 @@ const Game = (() => {
     cell.classList.remove("hover:bg-zinc-400")
     cell.style.cursor = "default"
     cell.removeEventListener("mousedown", placeSymbol)
+
+    if (Board.isFull()) {
+      console.log("board is full")
+    }
 
     switchPlayers()
   }
