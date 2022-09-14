@@ -1,18 +1,18 @@
-const emptySymbol = "\u00a0"
-
 const Player = (symbol) => {
   return { symbol }
 }
 
 const Board = () => {
+  let emptySymbol = null
   let contents = []
 
   const insertAt = (symbol, index) => {
     contents[index] = symbol
   }
 
-  const setup = () => {
-    contents = [emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol]
+  const setup = (symbol) => {
+    emptySymbol = symbol
+    contents = [symbol, symbol, symbol, symbol, symbol, symbol, symbol, symbol, symbol]
   }
 
   const isFull = () => {
@@ -48,6 +48,7 @@ const Display = () => {
 }
 
 const Game = (() => {
+  const emptySymbol = "\u00a0"
   const playerOne = Player("X")
   const playerTwo = Player("O")
   const board = Board()
@@ -64,7 +65,7 @@ const Game = (() => {
 
   const setup = () => {
     turn = 1
-    board.setup()
+    board.setup(emptySymbol)
     display.setup(board.contents, playTurn)
   }
 
