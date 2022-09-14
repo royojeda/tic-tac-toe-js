@@ -4,18 +4,14 @@ const Player = (symbol) => {
   return { symbol }
 }
 
-const Board = (() => {
+const Board = () => {
   let contents = []
-
-  const getContentAt = (index) => {
-    return contents[index]
-  }
 
   const insertAt = (symbol, index) => {
     contents[index] = symbol
   }
 
-  const reset = () => {
+  const setup = () => {
     contents = [emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol, emptySymbol]
   }
 
@@ -23,15 +19,39 @@ const Board = (() => {
     return !contents.includes(emptySymbol)
   }
 
-  return { getContentAt, insertAt, reset, isFull }
-})()
+  return { insertAt, setup, isFull, get contents() { return contents } }
+}
+
+const Display = () => {
+  const cells = document.querySelectorAll("[class^='cell']")
+  let listener = null
+
+  const setup = (contents, listenerFunction) => {
+    listener = listenerFunction
+    cells.forEach(cell => {
+      cell.textContent = contents[cell.dataset.index]
+      cell.classList.add("hover:bg-zinc-400")
+      cell.style.cursor = "pointer"
+      cell.addEventListener("mousedown", listener)
+    })
+  }
+
+  const insertAt = (symbol, index) => {
+    const cell = cells[index]
+    cell.textContent = symbol
+    cell.classList.remove("hover:bg-zinc-400")
+    cell.style.cursor = "default"
+    cell.removeEventListener("mousedown", listener)
+  }
+
+  return { setup, insertAt }
+}
 
 const Game = (() => {
-  const cells = document.querySelectorAll("[class^='cell']")
-
   const playerOne = Player("X")
   const playerTwo = Player("O")
-
+  const board = Board()
+  const display = Display()
   let turn = 1
 
   const currentPlayer = () => {
@@ -39,35 +59,21 @@ const Game = (() => {
   }
 
   const switchPlayers = () => {
-    turn += 1
+    turn++
   }
 
   const setup = () => {
     turn = 1
-
-    Board.reset()
-
-    cells.forEach(cell => {
-      cell.textContent = Board.getContentAt(cell.dataset.index)
-      cell.classList.add("hover:bg-zinc-400")
-      cell.style.cursor = "pointer"
-      cell.addEventListener("mousedown", placeSymbol)
-    })
+    board.setup()
+    display.setup(board.contents, playTurn)
   }
 
-  const placeSymbol = (event) => {
-    const cell = event.target
-    Board.insertAt(currentPlayer().symbol, cell.dataset.index)
-
-    cell.textContent = Board.getContentAt(cell.dataset.index)
-    cell.classList.remove("hover:bg-zinc-400")
-    cell.style.cursor = "default"
-    cell.removeEventListener("mousedown", placeSymbol)
-
-    if (Board.isFull()) {
+  const playTurn = (event) => {
+    board.insertAt(currentPlayer().symbol, event.target.dataset.index)
+    display.insertAt(currentPlayer().symbol, event.target.dataset.index)
+    if (board.isFull()) {
       console.log("board is full")
     }
-
     switchPlayers()
   }
 
