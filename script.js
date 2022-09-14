@@ -19,11 +19,22 @@ const Board = () => {
     return !contents.includes(emptySymbol)
   }
 
-  return { insertAt, setup, isFull, get contents() { return contents } }
+  const hasPatterns = (patterns) => {
+    return patterns.some((pattern) => {
+      return contents[pattern[0]] !== emptySymbol &&
+             contents[pattern[0]] === contents[pattern[1]] &&
+             contents[pattern[1]] === contents[pattern[2]]
+    })
+  }
+
+  return { insertAt, setup, isFull, get contents() { return contents }, hasPatterns }
 }
 
 const Display = () => {
   const cells = document.querySelectorAll("[class^='cell']")
+  const backdrop = document.querySelector(".backdrop")
+  const announcement = document.querySelector(".announcement")
+  const closeModalButton = document.querySelector(".closeModalButton")
   let listener = null
 
   const setup = (contents, listenerFunction) => {
@@ -44,7 +55,31 @@ const Display = () => {
     cell.removeEventListener("mousedown", listener)
   }
 
-  return { setup, insertAt }
+  const announceWinner = (winner) => {
+    if (winner) {
+      announcement.textContent = `${winner} wins!`
+    } else {
+      announcement.textContent = "Draw!"
+    }
+
+    closeModalButton.addEventListener("click", () => {
+      closeModal()
+    })
+    openModal()
+  }
+
+  const openModal = () => {
+    backdrop.classList.replace("opacity-0", "opacity-100")
+    backdrop.classList.remove("z-[-1]")
+  }
+
+  const closeModal = () => {
+    backdrop.classList.replace("opacity-100", "opacity-0")
+    backdrop.classList.add("z-[-1]")
+    Game.setup()
+  }
+
+  return { setup, insertAt, announceWinner }
 }
 
 const Game = (() => {
@@ -53,6 +88,9 @@ const Game = (() => {
   const playerTwo = Player("O")
   const board = Board()
   const display = Display()
+  const winningPatterns = [[0, 1, 2], [3, 4, 5], [6, 7, 8],
+                           [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                           [0, 4, 8], [2, 4, 6]]
   let turn = 1
 
   const currentPlayer = () => {
@@ -72,17 +110,21 @@ const Game = (() => {
   const playTurn = (event) => {
     board.insertAt(currentPlayer().symbol, event.target.dataset.index)
     display.insertAt(currentPlayer().symbol, event.target.dataset.index)
-    if (board.isFull()) {
-      console.log("board is full")
-    }
+    checkEndConditions()
     switchPlayers()
   }
 
-  const play = () => {
-    setup()
+  const checkEndConditions = () => {
+    if (board.hasPatterns(winningPatterns)) {
+      display.announceWinner(currentPlayer().symbol)
+    } else {
+      if (board.isFull()) {
+        display.announceWinner()
+      }
+    }
   }
 
-  return { play, setup }
+  return { setup }
 })()
 
-Game.play()
+Game.setup()
