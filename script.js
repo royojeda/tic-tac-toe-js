@@ -55,7 +55,7 @@ const Display = () => {
     cell.removeEventListener("mousedown", listener)
   }
 
-  const announceWinner = (winner) => {
+  const showResult = (resetFunction, winner) => {
     if (winner) {
       announcement.textContent = `${winner} wins!`
     } else {
@@ -64,6 +64,7 @@ const Display = () => {
 
     closeModalButton.addEventListener("click", () => {
       closeModal()
+      resetFunction()
     })
     openModal()
   }
@@ -76,10 +77,9 @@ const Display = () => {
   const closeModal = () => {
     backdrop.classList.replace("opacity-100", "opacity-0")
     backdrop.classList.add("z-[-1]")
-    Game.setup()
   }
 
-  return { setup, insertAt, announceWinner }
+  return { setup, insertAt, showResult }
 }
 
 const Game = (() => {
@@ -116,10 +116,10 @@ const Game = (() => {
 
   const checkEndConditions = () => {
     if (board.hasPatterns(winningPatterns)) {
-      display.announceWinner(currentPlayer().symbol)
+      display.showResult(setup, currentPlayer().symbol)
     } else {
       if (board.isFull()) {
-        display.announceWinner()
+        display.showResult(setup)
       }
     }
   }
